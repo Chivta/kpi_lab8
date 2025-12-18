@@ -9,7 +9,71 @@ namespace Online_Course_Enrollment_System_Properties.Tests.Properties
 {
     public class EnrollmentProperties
     {
-        
+        [Property(Arbitrary = new[] { typeof(CourseArbitraries) })]
+        public void StudentIdIsNeverNullOrWhitespace(Student student)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(student.Id));
+        }
+
+        [Property(Arbitrary = new[] { typeof(CourseArbitraries) })]
+        public void CourseIdIsNeverNullOrWhitespace(Course course)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(course.Id));
+        }
+
+        [Property(Arbitrary = new[] { typeof(CourseArbitraries) })]
+        public void CourseCapacityIsAlwaysPositive(Course course)
+        {
+            Assert.True(course.Capacity > 0);
+        }
+
+        [Property(Arbitrary = new[] { typeof(CourseArbitraries) })]
+        public void EnrolledStudentsNeverExceedsCapacity(Course course)
+        {
+            Assert.True(course.Students.Count <= course.Capacity);
+        }
+
+        [Property(Arbitrary = new[] { typeof(CourseArbitraries) })]
+        public void EnrollingSameStudentTwiceReturnsFalse(Course course, Student student)
+        {
+            var firstEnrollment = course.Enroll(student);
+            var secondEnrollment = course.Enroll(student);
+
+            Assert.False(secondEnrollment);
+        }
+
+        [Property(Arbitrary = new[] { typeof(CourseArbitraries) })]
+        public void CannotEnrollWhenCourseFull(Course course)
+        {
+            // Fill the course to capacity
+            for (int i = 0; i < course.Capacity; i++)
+            {
+                var student = new Student($"Student{i}");
+                course.Enroll(student);
+            }
+
+            // Try to enroll one more
+            var extraStudent = new Student("ExtraStudent");
+            var result = course.Enroll(extraStudent);
+
+            Assert.False(result);
+            Assert.Equal(course.Capacity, course.Students.Count);
+        }
+
+        [Property(Arbitrary = new[] { typeof(CourseArbitraries) })]
+        public void EnrollmentRepositorySavesAndRetrievesCourses(Course course1, Course course2)
+        {
+            var repo = new EnrollmentRepository();
+
+            repo.Save(course1);
+            repo.Save(course2);
+
+            var allCourses = repo.All();
+
+            Assert.Equal(2, allCourses.Count);
+            Assert.Contains(course1, allCourses);
+            Assert.Contains(course2, allCourses);
+        }
     }
 
 }
