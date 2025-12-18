@@ -74,6 +74,40 @@ namespace Online_Course_Enrollment_System_Properties.Tests.Properties
             Assert.Contains(course1, allCourses);
             Assert.Contains(course2, allCourses);
         }
+
+        [Property(Arbitrary = new[] { typeof(CourseArbitraries) })]
+        public void NewCourseStartsWithZeroStudents(Course course)
+        {
+            Assert.Empty(course.Students);
+        }
+
+        [Property(Arbitrary = new[] { typeof(CourseArbitraries) })]
+        public void SuccessfulEnrollmentIncreasesStudentCount(Course course, Student student)
+        {
+            var initialCount = course.Students.Count;
+            var enrolled = course.Enroll(student);
+
+            if (enrolled)
+            {
+                Assert.Equal(initialCount + 1, course.Students.Count);
+                Assert.Contains(student, course.Students);
+            }
+            else
+            {
+                Assert.Equal(initialCount, course.Students.Count);
+            }
+        }
+
+        [Property(Arbitrary = new[] { typeof(CourseArbitraries) })]
+        public void EnrollmentSucceedsWhenCapacityAvailable(Student student)
+        {
+            var course = new Course("TestCourse", 10);
+            var result = course.Enroll(student);
+
+            Assert.True(result);
+            Assert.Single(course.Students);
+            Assert.Contains(student, course.Students);
+        }
     }
 
 }
